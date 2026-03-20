@@ -663,61 +663,53 @@ function submitComment() {
   btn.disabled = true;
   btn.textContent = 'Sending...';
 
-  // Use hidden iframe + form to POST (bypasses CORS with Workspace auth)
-  const iframeName = '_edmPost_' + Date.now();
-  const iframe = document.createElement('iframe');
-  iframe.name = iframeName;
-  iframe.style.display = 'none';
-  document.body.appendChild(iframe);
-
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = API_URL;
-  form.target = iframeName;
-  form.style.display = 'none';
-
-  const fields = {
+  // Use JSONP GET with action=write to bypass CORS
+  const callbackName = '_edmPostCb_' + Date.now();
+  const params = new URLSearchParams({
+    action: 'write',
+    callback: callbackName,
     language: currentLang,
     section: section,
     reviewer: reviewer || 'Anonymous',
     comment: comment
-  };
-
-  Object.keys(fields).forEach(function(key) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = key;
-    input.value = fields[key];
-    form.appendChild(input);
   });
 
-  document.body.appendChild(form);
-  form.submit();
+  window[callbackName] = function(data) {
+    delete window[callbackName];
+    var s = document.getElementById(callbackName);
+    if (s) s.remove();
 
-  // We can't read the iframe response (cross-origin), so assume success
-  // and add the comment locally for instant feedback
-  setTimeout(function() {
-    showStatus('Comment posted!', 'success');
-    document.getElementById('commentText').value = '';
-
-    allComments.push({
-      Timestamp: new Date().toISOString(),
-      Language: currentLang,
-      Section: section,
-      Reviewer: reviewer || 'Anonymous',
-      Comment: comment,
-      Status: 'Open'
-    });
-    updateSectionOverlayDots();
-    renderComments();
-
+    if (data.success) {
+      showStatus('Comment posted!', 'success');
+      document.getElementById('commentText').value = '';
+      allComments.push({
+        Timestamp: new Date().toISOString(),
+        Language: currentLang,
+        Section: section,
+        Reviewer: reviewer || 'Anonymous',
+        Comment: comment,
+        Status: 'Open'
+      });
+      updateSectionOverlayDots();
+      renderComments();
+    } else {
+      showStatus('Failed to post: ' + (data.error || 'Unknown error'), 'error');
+    }
     btn.disabled = false;
     btn.textContent = 'Send';
+  };
 
-    // Cleanup
-    form.remove();
-    setTimeout(function() { iframe.remove(); }, 5000);
-  }, 1500);
+  var script = document.createElement('script');
+  script.id = callbackName;
+  script.src = API_URL + '?' + params.toString();
+  script.onerror = function() {
+    delete window[callbackName];
+    script.remove();
+    showStatus('Network error. Please try again.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Send';
+  };
+  document.body.appendChild(script);
 }
 
 // =============================================
