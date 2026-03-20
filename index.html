@@ -280,7 +280,7 @@
       gap: 8px;
       margin-bottom: 8px;
     }
-    .form-row input, .form-row select {
+    .form-row input {
       flex: 1;
       padding: 8px 10px;
       border: 1px solid var(--gray-300);
@@ -288,7 +288,27 @@
       font-size: 13px;
       outline: none;
     }
-    .form-row input:focus, .form-row select:focus { border-color: var(--orange); }
+    .form-row input:focus { border-color: var(--orange); }
+    .selected-section-tag {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      color: var(--gray-500);
+      background: var(--gray-100);
+      border: 1px dashed var(--gray-300);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .selected-section-tag.has-section {
+      background: var(--orange-light);
+      border: 1px solid var(--orange);
+      color: var(--orange);
+      font-weight: 600;
+    }
     .comment-input-wrap {
       display: flex;
       gap: 8px;
@@ -459,7 +479,7 @@
       <div class="comment-form" id="commentForm">
         <div class="form-row">
           <input type="text" id="reviewerName" placeholder="Your name" />
-          <select id="sectionSelect"></select>
+          <span class="selected-section-tag" id="selectedSectionTag">請點擊你想 comment 的區塊</span>
         </div>
         <div class="comment-input-wrap">
           <textarea id="commentText" placeholder="Leave your feedback here..."></textarea>
@@ -624,10 +644,6 @@ function renderSectionNav() {
     </div>`
   ).join('');
 
-  // Section select dropdown
-  const select = document.getElementById('sectionSelect');
-  select.innerHTML = '<option value="">Select section...</option>' +
-    SECTIONS.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
 }
 
 function selectSection(sectionId) {
@@ -644,7 +660,9 @@ function selectSection(sectionId) {
   document.querySelectorAll('.section-btn').forEach(el => {
     el.classList.toggle('active', el.dataset.section === sectionId);
   });
-  document.getElementById('sectionSelect').value = sectionId;
+  const tag = document.getElementById('selectedSectionTag');
+  tag.textContent = section.label;
+  tag.className = 'selected-section-tag has-section';
   document.getElementById('reviewTitle').textContent = section.label;
 
   const lang = LANGUAGES.find(l => l.code === currentLang);
@@ -724,11 +742,11 @@ function renderComments() {
 
 function submitComment() {
   const reviewer = document.getElementById('reviewerName').value.trim();
-  const section = document.getElementById('sectionSelect').value;
+  const section = currentSection;
   const comment = document.getElementById('commentText').value.trim();
 
   if (!comment) return showStatus('Please enter a comment', 'error');
-  if (!section) return showStatus('Please select a section', 'error');
+  if (!section) return showStatus('請先點擊 EDM 上你想 comment 的區塊', 'error');
   if (!API_URL) return showStatus('API URL not configured. See setup instructions.', 'error');
 
   const btn = document.getElementById('submitBtn');
