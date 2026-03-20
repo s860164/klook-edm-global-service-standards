@@ -4,112 +4,724 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>Klook EDM - New Global Service Standard Policy</title>
+  <title>Klook EDM Review - Global Service Standard Policy</title>
   <style>
+    :root {
+      --orange: #FF5722;
+      --orange-light: #FFF3E0;
+      --blue: #1A73E8;
+      --green: #34A853;
+      --gray-50: #FAFAFA;
+      --gray-100: #F5F5F5;
+      --gray-200: #EEEEEE;
+      --gray-300: #E0E0E0;
+      --gray-500: #9E9E9E;
+      --gray-700: #616161;
+      --gray-900: #212121;
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+      --radius: 8px;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #f5f5f5;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-900);
     }
-    .header {
+
+    /* Top bar */
+    .topbar {
       background: #fff;
-      border-bottom: 1px solid #e0e0e0;
-      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-300);
+      padding: 12px 24px;
       position: sticky;
       top: 0;
       z-index: 100;
-      text-align: center;
-    }
-    .header h1 {
-      font-size: 16px;
-      color: #333;
-      margin-bottom: 12px;
-    }
-    .tabs {
       display: flex;
-      gap: 6px;
-      justify-content: center;
+      align-items: center;
+      gap: 16px;
       flex-wrap: wrap;
     }
-    .tab {
-      padding: 6px 14px;
-      border: 1px solid #ddd;
-      border-radius: 20px;
+    .topbar h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--gray-900);
+      white-space: nowrap;
+    }
+    .topbar .logo {
+      width: 24px; height: 24px;
+      background: var(--orange);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 12px;
+    }
+    .lang-tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .lang-tab {
+      padding: 5px 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: 16px;
       background: #fff;
       cursor: pointer;
-      font-size: 13px;
-      color: #666;
-      transition: all 0.2s;
+      font-size: 12px;
+      color: var(--gray-700);
+      transition: all 0.15s;
+      white-space: nowrap;
     }
-    .tab:hover { border-color: #FF5722; color: #FF5722; }
-    .tab.active {
-      background: #FF5722;
+    .lang-tab:hover { border-color: var(--orange); color: var(--orange); }
+    .lang-tab.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .comment-count-badge {
+      background: var(--orange);
       color: #fff;
-      border-color: #FF5722;
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 11px;
+      margin-left: 8px;
+      font-weight: 600;
     }
-    .content {
+
+    /* Main layout */
+    .main {
       display: flex;
-      justify-content: center;
-      padding: 20px 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      gap: 0;
+      min-height: calc(100vh - 52px);
     }
-    .edm-container {
-      max-width: 600px;
-      width: 100%;
-      background: #fff;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+
+    /* EDM panel */
+    .edm-panel {
+      flex: 0 0 620px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    .edm-container img {
+    .edm-image-wrap {
+      width: 600px;
+      position: relative;
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .edm-image-wrap img {
       width: 100%;
       height: auto;
       display: block;
     }
-    .edm-panel { display: none; }
-    .edm-panel.active { display: block; }
-    .footer {
-      text-align: center;
-      padding: 20px;
-      color: #999;
+
+    /* Section overlays */
+    .section-overlay {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: 2px solid transparent;
+    }
+    .section-overlay:hover {
+      background: rgba(255, 87, 34, 0.08);
+      border-color: rgba(255, 87, 34, 0.3);
+    }
+    .section-overlay.active {
+      background: rgba(255, 87, 34, 0.12);
+      border-color: var(--orange);
+    }
+    .section-label {
+      position: absolute;
+      right: -8px;
+      top: 50%;
+      transform: translate(100%, -50%);
+      background: var(--orange);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .section-overlay:hover .section-label,
+    .section-overlay.active .section-label { opacity: 1; }
+    .section-dot {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      width: 20px;
+      height: 20px;
+      background: var(--orange);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .section-dot.empty { background: var(--gray-500); }
+
+    /* Review panel */
+    .review-panel {
+      flex: 1;
+      background: #fff;
+      border-left: 1px solid var(--gray-300);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 52px);
+      position: sticky;
+      top: 52px;
+    }
+    .review-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .review-header h2 {
+      font-size: 14px;
+      color: var(--gray-900);
+    }
+    .review-header p {
       font-size: 12px;
+      color: var(--gray-500);
+      margin-top: 2px;
+    }
+
+    /* Section nav */
+    .section-nav {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .section-btn {
+      padding: 4px 10px;
+      border: 1px solid var(--gray-300);
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 11px;
+      color: var(--gray-700);
+      transition: all 0.15s;
+    }
+    .section-btn:hover { border-color: var(--orange); color: var(--orange); }
+    .section-btn.active { background: var(--orange-light); border-color: var(--orange); color: var(--orange); font-weight: 600; }
+    .section-btn .count {
+      background: var(--gray-300);
+      border-radius: 8px;
+      padding: 0 5px;
+      font-size: 10px;
+      margin-left: 4px;
+    }
+    .section-btn.active .count { background: var(--orange); color: #fff; }
+
+    /* Comments area */
+    .comments-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+    .comment-card {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+    .comment-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .comment-author {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gray-900);
+    }
+    .comment-time {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+    .comment-section-tag {
+      display: inline-block;
+      background: var(--orange-light);
+      color: var(--orange);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .comment-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--gray-700);
+    }
+    .no-comments {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray-500);
+      font-size: 13px;
+    }
+    .no-comments .icon { font-size: 32px; margin-bottom: 8px; }
+
+    /* Comment form */
+    .comment-form {
+      padding: 16px 20px;
+      border-top: 1px solid var(--gray-200);
+      background: var(--gray-50);
+    }
+    .form-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .form-row input, .form-row select {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid var(--gray-300);
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    .form-row input:focus, .form-row select:focus { border-color: var(--orange); }
+    .comment-input-wrap {
+      display: flex;
+      gap: 8px;
+    }
+    .comment-input-wrap textarea {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid var(--gray-300);
+      border-radius: 6px;
+      font-size: 13px;
+      resize: none;
+      height: 60px;
+      outline: none;
+      font-family: inherit;
+    }
+    .comment-input-wrap textarea:focus { border-color: var(--orange); }
+    .submit-btn {
+      padding: 8px 16px;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+    .submit-btn:hover { background: #E64A19; }
+    .submit-btn:disabled { background: var(--gray-300); cursor: not-allowed; }
+
+    /* Status bar */
+    .status-bar {
+      padding: 8px 20px;
+      background: var(--orange-light);
+      font-size: 12px;
+      color: var(--orange);
+      text-align: center;
+      display: none;
+    }
+    .status-bar.show { display: block; }
+    .status-bar.error { background: #FFEBEE; color: #D32F2F; }
+    .status-bar.success { background: #E8F5E9; color: var(--green); }
+
+    /* Setup banner */
+    .setup-banner {
+      background: #FFF8E1;
+      border: 1px solid #FFE082;
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin: 16px 20px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .setup-banner code {
+      background: #FFF3E0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .main { flex-direction: column; }
+      .edm-panel { flex: none; width: 100%; }
+      .edm-image-wrap { width: 100%; max-width: 600px; }
+      .review-panel { position: static; max-height: none; }
+      .section-label { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>Klook EDM - New Global Service Standard Policy</h1>
-    <div class="tabs">
-      <div class="tab active" data-lang="en">English</div>
-      <div class="tab" data-lang="zh-tw">繁體中文</div>
-      <div class="tab" data-lang="zh-cn">简体中文</div>
-      <div class="tab" data-lang="ja">日本語</div>
-      <div class="tab" data-lang="ko">한국어</div>
-      <div class="tab" data-lang="vi">Tiếng Việt</div>
-      <div class="tab" data-lang="th">ภาษาไทย</div>
+  <div class="topbar">
+    <div class="logo">K</div>
+    <h1>EDM Review - Global Service Standard Policy</h1>
+    <div class="lang-tabs" id="langTabs"></div>
+  </div>
+
+  <div class="main">
+    <div class="edm-panel">
+      <div class="edm-image-wrap" id="edmImageWrap">
+        <img id="edmImage" src="" alt="EDM Preview" />
+      </div>
+    </div>
+
+    <div class="review-panel">
+      <div class="review-header">
+        <h2 id="reviewTitle">Select a section to review</h2>
+        <p id="reviewSubtitle">Click on the EDM or use the buttons below</p>
+      </div>
+      <div class="section-nav" id="sectionNav"></div>
+      <div class="status-bar" id="statusBar"></div>
+      <div class="comments-area" id="commentsArea">
+        <div class="no-comments">
+          <div class="icon">💬</div>
+          <p>Click a section on the EDM to view and leave comments</p>
+        </div>
+      </div>
+      <div class="comment-form" id="commentForm">
+        <div class="form-row">
+          <input type="text" id="reviewerName" placeholder="Your name" />
+          <select id="sectionSelect"></select>
+        </div>
+        <div class="comment-input-wrap">
+          <textarea id="commentText" placeholder="Leave your feedback here..."></textarea>
+          <button class="submit-btn" id="submitBtn" onclick="submitComment()">Send</button>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="content">
-    <div class="edm-container">
-      <div class="edm-panel active" data-lang="en"><img src="en.png?v=20260320" alt="English" /></div>
-      <div class="edm-panel" data-lang="zh-tw"><img src="zh-tw.png?v=20260320" alt="繁體中文" /></div>
-      <div class="edm-panel" data-lang="zh-cn"><img src="zh-cn.png?v=20260320" alt="简体中文" /></div>
-      <div class="edm-panel" data-lang="ja"><img src="ja.png?v=20260320" alt="日本語" /></div>
-      <div class="edm-panel" data-lang="ko"><img src="ko.png?v=20260320" alt="한국어" /></div>
-      <div class="edm-panel" data-lang="vi"><img src="vi.png?v=20260320" alt="Tiếng Việt" /></div>
-      <div class="edm-panel" data-lang="th"><img src="th.png?v=20260320" alt="ภาษาไทย" /></div>
+
+<script>
+// =============================================
+// CONFIG - Set your Apps Script URL here
+// =============================================
+const API_URL = localStorage.getItem('edm_review_api_url') || '';
+
+const LANGUAGES = [
+  { code: 'en', label: 'English', flag: '🇺🇸', file: 'en.png' },
+  { code: 'zh-tw', label: '繁體中文', flag: '🇹🇼', file: 'zh-tw.png' },
+  { code: 'zh-cn', label: '简体中文', flag: '🇨🇳', file: 'zh-cn.png' },
+  { code: 'ja', label: '日本語', flag: '🇯🇵', file: 'ja.png' },
+  { code: 'ko', label: '한국어', flag: '🇰🇷', file: 'ko.png' },
+  { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳', file: 'vi.png' },
+  { code: 'th', label: 'ภาษาไทย', flag: '🇹🇭', file: 'th.png' },
+];
+
+// Section definitions (percentage of total height)
+const SECTIONS = [
+  { id: 'header-hero', label: 'Header & Hero', top: 0, bottom: 16.3 },
+  { id: 'pillars', label: '3 Service Pillars', top: 16.3, bottom: 28.8 },
+  { id: 'standards', label: 'Industry Standards', top: 28.8, bottom: 40 },
+  { id: 'suspension', label: 'Suspension Thresholds', top: 40, bottom: 52.8 },
+  { id: 'compensation', label: 'Compensation Framework', top: 52.8, bottom: 68.4 },
+  { id: 'tips', label: 'Quick Tips', top: 68.4, bottom: 78.9 },
+  { id: 'timeline', label: 'Implementation Timeline', top: 78.9, bottom: 87 },
+  { id: 'cta-footer', label: 'CTA & Footer', top: 87, bottom: 100 },
+];
+
+let currentLang = 'en';
+let currentSection = null;
+let allComments = [];
+
+// =============================================
+// INIT
+// =============================================
+function init() {
+  renderLangTabs();
+  renderSectionNav();
+  renderSectionOverlays();
+  switchLang('en');
+  loadComments();
+
+  // Check if API URL is set
+  if (!API_URL) {
+    showSetupBanner();
+  }
+}
+
+function showSetupBanner() {
+  const area = document.getElementById('commentsArea');
+  area.innerHTML = `
+    <div class="setup-banner">
+      <strong>⚙️ Setup Required</strong><br><br>
+      To enable comments, deploy the Apps Script and set the API URL:<br><br>
+      1. Open <a href="https://script.google.com" target="_blank">script.google.com</a><br>
+      2. Create a new project and paste the code from <code>apps-script.js</code><br>
+      3. Deploy → New deployment → Web app<br>
+      4. Set "Who has access" to <strong>Anyone</strong><br>
+      5. Copy the deployment URL<br>
+      6. Open browser console (F12) and run:<br>
+      <code>localStorage.setItem('edm_review_api_url', 'YOUR_URL')</code><br>
+      7. Reload the page<br><br>
+      <em>Or click here to set it now:</em><br><br>
+      <button onclick="promptApiUrl()" style="padding:8px 16px;background:#FF5722;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Set API URL</button>
     </div>
-  </div>
-  <div class="footer">Last updated: 2026-03-20</div>
-  <script>
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.edm-panel').forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        document.querySelector('.edm-panel[data-lang="' + tab.dataset.lang + '"]').classList.add('active');
-      });
+  `;
+}
+
+function promptApiUrl() {
+  const url = prompt('Paste your Apps Script deployment URL:');
+  if (url && url.startsWith('https://script.google.com')) {
+    localStorage.setItem('edm_review_api_url', url);
+    location.reload();
+  }
+}
+
+// =============================================
+// LANGUAGE TABS
+// =============================================
+function renderLangTabs() {
+  const container = document.getElementById('langTabs');
+  container.innerHTML = LANGUAGES.map(l =>
+    `<div class="lang-tab ${l.code === currentLang ? 'active' : ''}"
+          data-lang="${l.code}" onclick="switchLang('${l.code}')">
+      ${l.flag} ${l.label}
+    </div>`
+  ).join('');
+}
+
+function switchLang(code) {
+  currentLang = code;
+  const lang = LANGUAGES.find(l => l.code === code);
+  document.getElementById('edmImage').src = lang.file + '?v=20260320';
+  document.querySelectorAll('.lang-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.lang === code);
+  });
+  updateSectionOverlayDots();
+  if (currentSection) {
+    renderComments();
+  }
+}
+
+// =============================================
+// SECTION OVERLAYS ON IMAGE
+// =============================================
+function renderSectionOverlays() {
+  const wrap = document.getElementById('edmImageWrap');
+  SECTIONS.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'section-overlay';
+    div.dataset.section = s.id;
+    div.style.top = s.top + '%';
+    div.style.height = (s.bottom - s.top) + '%';
+    div.innerHTML = `
+      <span class="section-label">${s.label}</span>
+      <span class="section-dot empty" id="dot-${s.id}">0</span>
+    `;
+    div.onclick = () => selectSection(s.id);
+    wrap.appendChild(div);
+  });
+}
+
+function updateSectionOverlayDots() {
+  SECTIONS.forEach(s => {
+    const count = allComments.filter(c =>
+      c.Language === currentLang && c.Section === s.id
+    ).length;
+    const dot = document.getElementById('dot-' + s.id);
+    if (dot) {
+      dot.textContent = count;
+      dot.className = 'section-dot' + (count === 0 ? ' empty' : '');
+    }
+  });
+  // Update section nav buttons
+  document.querySelectorAll('.section-btn').forEach(btn => {
+    const sId = btn.dataset.section;
+    const count = allComments.filter(c =>
+      c.Language === currentLang && c.Section === sId
+    ).length;
+    const countEl = btn.querySelector('.count');
+    if (countEl) countEl.textContent = count;
+  });
+}
+
+// =============================================
+// SECTION NAV
+// =============================================
+function renderSectionNav() {
+  const nav = document.getElementById('sectionNav');
+  nav.innerHTML = SECTIONS.map(s =>
+    `<div class="section-btn" data-section="${s.id}" onclick="selectSection('${s.id}')">
+      ${s.label} <span class="count">0</span>
+    </div>`
+  ).join('');
+
+  // Section select dropdown
+  const select = document.getElementById('sectionSelect');
+  select.innerHTML = '<option value="">Select section...</option>' +
+    SECTIONS.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+}
+
+function selectSection(sectionId) {
+  currentSection = sectionId;
+  const section = SECTIONS.find(s => s.id === sectionId);
+
+  // Update UI
+  document.querySelectorAll('.section-overlay').forEach(el => {
+    el.classList.toggle('active', el.dataset.section === sectionId);
+  });
+  document.querySelectorAll('.section-btn').forEach(el => {
+    el.classList.toggle('active', el.dataset.section === sectionId);
+  });
+  document.getElementById('sectionSelect').value = sectionId;
+  document.getElementById('reviewTitle').textContent = section.label;
+
+  const lang = LANGUAGES.find(l => l.code === currentLang);
+  document.getElementById('reviewSubtitle').textContent = lang.flag + ' ' + lang.label;
+
+  renderComments();
+}
+
+// =============================================
+// COMMENTS
+// =============================================
+async function loadComments() {
+  if (!API_URL) return;
+
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    if (data.success) {
+      allComments = data.comments;
+      updateSectionOverlayDots();
+      if (currentSection) renderComments();
+    }
+  } catch (e) {
+    console.error('Failed to load comments:', e);
+  }
+}
+
+function renderComments() {
+  const area = document.getElementById('commentsArea');
+  if (!currentSection) {
+    area.innerHTML = '<div class="no-comments"><div class="icon">💬</div><p>Click a section to view comments</p></div>';
+    return;
+  }
+
+  const comments = allComments.filter(c =>
+    c.Language === currentLang && c.Section === currentSection
+  );
+
+  if (comments.length === 0) {
+    const section = SECTIONS.find(s => s.id === currentSection);
+    area.innerHTML = `
+      <div class="no-comments">
+        <div class="icon">📝</div>
+        <p>No comments yet for <strong>${section.label}</strong>.<br>Be the first to leave feedback!</p>
+      </div>
+    `;
+    return;
+  }
+
+  area.innerHTML = comments.map(c => {
+    const time = c.Timestamp ? formatTime(c.Timestamp) : '';
+    return `
+      <div class="comment-card">
+        <div class="comment-meta">
+          <span class="comment-author">${escapeHtml(c.Reviewer || 'Anonymous')}</span>
+          <span class="comment-time">${time}</span>
+        </div>
+        <div class="comment-text">${escapeHtml(c.Comment)}</div>
+      </div>
+    `;
+  }).join('');
+
+  area.scrollTop = area.scrollHeight;
+}
+
+async function submitComment() {
+  const reviewer = document.getElementById('reviewerName').value.trim();
+  const section = document.getElementById('sectionSelect').value;
+  const comment = document.getElementById('commentText').value.trim();
+
+  if (!comment) return showStatus('Please enter a comment', 'error');
+  if (!section) return showStatus('Please select a section', 'error');
+  if (!API_URL) return showStatus('API URL not configured. See setup instructions.', 'error');
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        language: currentLang,
+        section: section,
+        reviewer: reviewer || 'Anonymous',
+        comment: comment
+      })
     });
-  </script>
+    const data = await res.json();
+    if (data.success) {
+      showStatus('Comment posted!', 'success');
+      document.getElementById('commentText').value = '';
+      // Add locally for instant feedback
+      allComments.push({
+        Timestamp: new Date().toISOString(),
+        Language: currentLang,
+        Section: section,
+        Reviewer: reviewer || 'Anonymous',
+        Comment: comment,
+        Status: 'Open'
+      });
+      updateSectionOverlayDots();
+      renderComments();
+    } else {
+      showStatus('Failed to post: ' + (data.error || 'Unknown error'), 'error');
+    }
+  } catch (e) {
+    showStatus('Network error. Check API URL.', 'error');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send';
+  }
+}
+
+// =============================================
+// UTILS
+// =============================================
+function showStatus(msg, type) {
+  const bar = document.getElementById('statusBar');
+  bar.textContent = msg;
+  bar.className = 'status-bar show ' + type;
+  setTimeout(() => { bar.className = 'status-bar'; }, 3000);
+}
+
+function formatTime(ts) {
+  try {
+    const d = new Date(ts);
+    const now = new Date();
+    const diff = (now - d) / 1000;
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return d.toLocaleDateString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch { return ''; }
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// Auto-refresh comments every 30 seconds
+setInterval(loadComments, 30000);
+
+// Init
+document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
