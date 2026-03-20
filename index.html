@@ -350,13 +350,77 @@
       font-size: 12px;
     }
 
+    /* Mobile floating comment form toggle */
+    .mobile-comment-toggle {
+      display: none;
+    }
+
     /* Responsive */
     @media (max-width: 1024px) {
-      .main { flex-direction: column; }
+      .main { flex-direction: column; padding-bottom: 0; }
       .edm-panel { flex: none; width: 100%; }
       .edm-image-wrap { width: 100%; max-width: 600px; }
-      .review-panel { position: static; max-height: none; }
+      .review-panel {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 200;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        border-radius: 16px 16px 0 0;
+        flex: none;
+        height: auto;
+        max-height: none;
+        min-height: 0;
+        border-left: none;
+      }
+      .review-panel:not(.collapsed) .comments-area {
+        max-height: 25vh;
+        overflow-y: auto;
+      }
+      .review-panel.collapsed .section-nav,
+      .review-panel.collapsed .comments-area,
+      .review-panel.collapsed .status-bar,
+      .review-panel.collapsed .comment-form {
+        display: none;
+      }
+      .mobile-comment-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 20px;
+        background: var(--orange);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 16px 16px 0 0;
+      }
+      .mobile-comment-toggle .arrow {
+        transition: transform 0.3s;
+        font-size: 16px;
+      }
+      .review-panel.collapsed .mobile-comment-toggle .arrow {
+        transform: rotate(180deg);
+      }
+      .review-header { display: none; }
+      .section-nav {
+        padding: 8px 12px;
+        gap: 3px;
+      }
+      .section-btn { font-size: 10px; padding: 3px 7px; }
+      .comments-area {
+        max-height: 20vh;
+        padding: 8px 12px;
+      }
+      .comment-form {
+        padding: 8px 12px 12px;
+      }
+      .comment-input-wrap textarea { height: 44px; }
       .section-label { display: none; }
+      .edm-panel { padding-bottom: 60px; }
     }
   </style>
 </head>
@@ -374,7 +438,11 @@
       </div>
     </div>
 
-    <div class="review-panel">
+    <div class="review-panel collapsed" id="reviewPanel">
+      <div class="mobile-comment-toggle" onclick="toggleReviewPanel()">
+        <span class="arrow">▲</span>
+        <span id="toggleLabel">Leave a Review</span>
+      </div>
       <div class="review-header">
         <h2 id="reviewTitle">Select a section to review</h2>
         <p id="reviewSubtitle">Click on the EDM or use the buttons below</p>
@@ -565,6 +633,9 @@ function selectSection(sectionId) {
   currentSection = sectionId;
   const section = SECTIONS.find(s => s.id === sectionId);
 
+  // Auto-expand on mobile
+  expandReviewPanel();
+
   // Update UI
   document.querySelectorAll('.section-overlay').forEach(el => {
     el.classList.toggle('active', el.dataset.section === sectionId);
@@ -738,6 +809,20 @@ function escapeHtml(s) {
   const div = document.createElement('div');
   div.textContent = s;
   return div.innerHTML;
+}
+
+// Mobile floating panel toggle
+function toggleReviewPanel() {
+  var panel = document.getElementById('reviewPanel');
+  panel.classList.toggle('collapsed');
+}
+
+// Auto-expand panel when clicking a section on mobile
+function expandReviewPanel() {
+  var panel = document.getElementById('reviewPanel');
+  if (panel.classList.contains('collapsed')) {
+    panel.classList.remove('collapsed');
+  }
 }
 
 // Auto-refresh comments every 30 seconds
