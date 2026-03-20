@@ -584,20 +584,32 @@ function selectSection(sectionId) {
 // =============================================
 // COMMENTS
 // =============================================
-async function loadComments() {
+function loadComments() {
   if (!API_URL) return;
 
-  try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
+  // Use JSONP to bypass CORS with Klook Workspace auth
+  const callbackName = '_edmCb_' + Date.now();
+  window[callbackName] = function(data) {
     if (data.success) {
       allComments = data.comments;
       updateSectionOverlayDots();
       if (currentSection) renderComments();
     }
-  } catch (e) {
-    console.error('Failed to load comments:', e);
-  }
+    // Cleanup
+    delete window[callbackName];
+    var s = document.getElementById(callbackName);
+    if (s) s.remove();
+  };
+
+  var script = document.createElement('script');
+  script.id = callbackName;
+  script.src = API_URL + '?callback=' + callbackName;
+  script.onerror = function() {
+    console.error('Failed to load comments via JSONP');
+    delete window[callbackName];
+    script.remove();
+  };
+  document.body.appendChild(script);
 }
 
 function renderComments() {
@@ -638,7 +650,7 @@ function renderComments() {
   area.scrollTop = area.scrollHeight;
 }
 
-async function submitComment() {
+function submitComment() {
   const reviewer = document.getElementById('reviewerName').value.trim();
   const section = document.getElementById('sectionSelect').value;
   const comment = document.getElementById('commentText').value.trim();
@@ -651,42 +663,61 @@ async function submitComment() {
   btn.disabled = true;
   btn.textContent = 'Sending...';
 
-  try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        language: currentLang,
-        section: section,
-        reviewer: reviewer || 'Anonymous',
-        comment: comment
-      })
+  // Use hidden iframe + form to POST (bypasses CORS with Workspace auth)
+  const iframeName = '_edmPost_' + Date.now();
+  const iframe = document.createElement('iframe');
+  iframe.name = iframeName;
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = API_URL;
+  form.target = iframeName;
+  form.style.display = 'none';
+
+  const fields = {
+    language: currentLang,
+    section: section,
+    reviewer: reviewer || 'Anonymous',
+    comment: comment
+  };
+
+  Object.keys(fields).forEach(function(key) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = fields[key];
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+
+  // We can't read the iframe response (cross-origin), so assume success
+  // and add the comment locally for instant feedback
+  setTimeout(function() {
+    showStatus('Comment posted!', 'success');
+    document.getElementById('commentText').value = '';
+
+    allComments.push({
+      Timestamp: new Date().toISOString(),
+      Language: currentLang,
+      Section: section,
+      Reviewer: reviewer || 'Anonymous',
+      Comment: comment,
+      Status: 'Open'
     });
-    const data = await res.json();
-    if (data.success) {
-      showStatus('Comment posted!', 'success');
-      document.getElementById('commentText').value = '';
-      // Add locally for instant feedback
-      allComments.push({
-        Timestamp: new Date().toISOString(),
-        Language: currentLang,
-        Section: section,
-        Reviewer: reviewer || 'Anonymous',
-        Comment: comment,
-        Status: 'Open'
-      });
-      updateSectionOverlayDots();
-      renderComments();
-    } else {
-      showStatus('Failed to post: ' + (data.error || 'Unknown error'), 'error');
-    }
-  } catch (e) {
-    showStatus('Network error. Check API URL.', 'error');
-    console.error(e);
-  } finally {
+    updateSectionOverlayDots();
+    renderComments();
+
     btn.disabled = false;
     btn.textContent = 'Send';
-  }
+
+    // Cleanup
+    form.remove();
+    setTimeout(function() { iframe.remove(); }, 5000);
+  }, 1500);
 }
 
 // =============================================
