@@ -231,6 +231,24 @@
       padding: 12px;
       margin-bottom: 8px;
     }
+    .comment-card.resolved {
+      opacity: 0.6;
+      border-left: 3px solid var(--green);
+    }
+    .comment-card.resolved .comment-text {
+      text-decoration: line-through;
+      color: var(--gray-500);
+    }
+    .resolved-badge {
+      display: inline-block;
+      background: var(--green);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+    }
     .comment-meta {
       display: flex;
       justify-content: space-between;
@@ -727,10 +745,11 @@ function renderComments() {
 
   area.innerHTML = comments.map(c => {
     const time = c.Timestamp ? formatTime(c.Timestamp) : '';
+    const isResolved = c.Status === 'Resolved';
     return `
-      <div class="comment-card">
+      <div class="comment-card${isResolved ? ' resolved' : ''}">
         <div class="comment-meta">
-          <span class="comment-author">${escapeHtml(c.Reviewer || 'Anonymous')}</span>
+          <span class="comment-author">${escapeHtml(c.Reviewer || 'Anonymous')}${isResolved ? '<span class="resolved-badge">Resolved</span>' : ''}</span>
           <span class="comment-time">${time}</span>
         </div>
         <div class="comment-text">${escapeHtml(c.Comment)}</div>
