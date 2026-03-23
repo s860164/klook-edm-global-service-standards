@@ -106,7 +106,7 @@
       border-radius: var(--radius);
       overflow: hidden;
     }
-    .edm-image-wrap img {
+    .edm-image-wrap img.edm-segment {
       width: 100%;
       height: auto;
       display: block;
@@ -473,7 +473,7 @@
   <div class="main">
     <div class="edm-panel">
       <div class="edm-image-wrap" id="edmImageWrap">
-        <img id="edmImage" src="" alt="EDM Preview" />
+        <!-- Segment images loaded dynamically -->
       </div>
     </div>
 
@@ -514,15 +514,16 @@
 const API_URL = localStorage.getItem('edm_review_api_url') || 'https://script.google.com/a/macros/klook.com/s/AKfycbyySk3vZSktKGejkj5M6vbrbu9EeYtVpHqOu89AOyP2Kf4Q-FPxQp-luJ1IkiAEl00t/exec';
 
 const LANGUAGES = [
-  { code: 'en', label: 'English', file: 'en.png' },
-  { code: 'en-us', label: 'English-Growth Market(all 25%)', file: 'en-us.png' },
-  { code: 'zh-tw', label: '繁體中文', file: 'zh-tw.png' },
-  { code: 'zh-cn', label: '简体中文', file: 'zh-cn.png' },
-  { code: 'ja', label: '日本語', file: 'ja.png' },
-  { code: 'ko', label: '한국어', file: 'ko.png' },
-  { code: 'vi', label: 'Tiếng Việt', file: 'vi.png' },
-  { code: 'th', label: 'ภาษาไทย', file: 'th.png' },
+  { code: 'en', label: 'English' },
+  { code: 'en-us', label: 'English-Growth Market(all 25%)' },
+  { code: 'zh-tw', label: '繁體中文' },
+  { code: 'zh-cn', label: '简体中文' },
+  { code: 'ja', label: '日本語' },
+  { code: 'ko', label: '한국어' },
+  { code: 'vi', label: 'Tiếng Việt' },
+  { code: 'th', label: 'ภาษาไทย' },
 ];
+const SEGMENT_COUNT = 17;
 
 // Section definitions (percentage of total height)
 const SECTIONS = [
@@ -599,8 +600,19 @@ function renderLangTabs() {
 
 function switchLang(code) {
   currentLang = code;
-  const lang = LANGUAGES.find(l => l.code === code);
-  document.getElementById('edmImage').src = lang.file + '?v=20260320';
+  const wrap = document.getElementById('edmImageWrap');
+  // Remove old segment images (keep overlays)
+  wrap.querySelectorAll('.edm-segment').forEach(img => img.remove());
+  // Add segment images
+  const v = Date.now();
+  for (let i = 1; i <= SEGMENT_COUNT; i++) {
+    const img = document.createElement('img');
+    img.className = 'edm-segment';
+    img.src = `${code}/${String(i).padStart(2, '0')}.png?v=${v}`;
+    img.alt = `EDM Segment ${i}`;
+    // Insert before overlays
+    wrap.insertBefore(img, wrap.querySelector('.section-overlay'));
+  }
   document.querySelectorAll('.lang-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.lang === code);
   });
